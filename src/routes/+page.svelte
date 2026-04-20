@@ -1,16 +1,16 @@
 <script>
   import { supabase } from '$lib/supabaseClient';
 
-  // En Svelte 5 usamos $state para que las variables sean reactivas
   let fechaInicio = $state('');
   let fechaFin = $state('');
-  let comisiones = $state([]);
+  
+  /** @type {any[]} */ 
+  let comisiones = $state([]); // Aquí le decimos que es un arreglo de cualquier cosa
   let cargando = $state(false);
 
   async function calcular() {
     cargando = true;
     
-    // Traemos datos de Supabase
     const { data: vendedores } = await supabase.from('Vendedor').select('*');
     const { data: reglas } = await supabase.from('Reglas').select('*');
     const { data: ventas } = await supabase
@@ -19,22 +19,22 @@
       .gte('fecha_venta', fechaInicio)
       .lte('fecha_venta', fechaFin);
 
-    // Validamos que nada sea null para que el editor no de error
     if (vendedores && reglas && ventas) {
       comisiones = vendedores.map(v => {
         const misVentas = ventas.filter(venta => venta.vendedor_id === v.id);
         let totalComision = 0;
 
         misVentas.forEach(venta => {
-          let reglaGanadora = null;
+          /** @type {any} */
+          let reglaGanadora = null; // Le avisamos que aquí guardaremos una regla
           
-          // Lógica del tutorial
           reglas.forEach(r => {
             if (venta.monto >= r.amount) {
               reglaGanadora = r;
             }
           });
 
+          // Ahora TypeScript ya no dirá que es 'never' porque sabe que puede ser una regla
           if (reglaGanadora) {
             totalComision += venta.monto * reglaGanadora.rule;
           }
